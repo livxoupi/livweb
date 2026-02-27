@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 const getStyles = (dark) => `
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Jost:wght@200;300;400;500&display=swap');
+
   :root {
     --bg:        ${dark ? "#0e0d0b" : "#faf8f5"};
     --surface:   ${dark ? "#161410" : "#ffffff"};
@@ -87,10 +89,7 @@ const getStyles = (dark) => `
 
   .main { max-width: 1000px; margin: 0 auto; padding: 48px 36px 80px; }
 
-  .tagline {
-    text-align: center;
-    margin-bottom: 36px;
-  }
+  .tagline { text-align: center; margin-bottom: 36px; }
 
   .tagline-main {
     font-family: 'Playfair Display', serif;
@@ -132,10 +131,7 @@ const getStyles = (dark) => `
   }
 
   .drop-zone.over,
-  .drop-zone:hover {
-    border-color: var(--gold);
-    background: var(--surface);
-  }
+  .drop-zone:hover { border-color: var(--gold); background: var(--surface); }
 
   .drop-zone input {
     position: absolute;
@@ -411,6 +407,122 @@ const getStyles = (dark) => `
     line-height: 1.5;
   }
 
+  .share-row {
+    padding: 12px 18px 16px;
+  }
+
+  .share-btn {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    border-radius: 3px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .share-btn:hover { background: var(--gold); color: #0e0d0b; }
+  .share-btn:disabled { opacity: 0.5; cursor: wait; }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    max-width: 480px;
+    width: 100%;
+    overflow: hidden;
+    animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .modal-preview {
+    width: 100%;
+    display: block;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-actions {
+    padding: 16px 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .modal-btn {
+    flex: 1;
+    padding: 11px;
+    border-radius: 3px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .modal-btn-primary {
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+  }
+  .modal-btn-primary:hover { background: var(--gold); color: #0e0d0b; }
+
+  .modal-btn-x {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+  }
+  .modal-btn-x:hover { background: var(--gold); color: #0e0d0b; }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 4px 8px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .share-card-wrap {
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    width: 480px;
+    pointer-events: none;
+  }
+
   .footer {
     text-align: center;
     padding: 32px 40px 40px;
@@ -475,7 +587,143 @@ function ScoreBar({ score }) {
   );
 }
 
+function ShareCard({ photo, results }) {
+  return (
+    <div
+      style={{
+        width: 480,
+        background: "#0e0d0b",
+        fontFamily: "Jost, sans-serif",
+        color: "#f0ebe3",
+      }}
+    >
+      <div style={{ position: "relative", width: "100%", height: 280, overflow: "hidden" }}>
+        <img
+          src={photo.src}
+          alt=""
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          crossOrigin="anonymous"
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(to top, rgba(14,13,11,0.95) 0%, rgba(14,13,11,0.2) 55%, transparent 100%)",
+          }}
+        />
+        <div style={{ position: "absolute", bottom: 18, left: 22 }}>
+          <div style={{ fontFamily: "Playfair Display, serif", fontSize: "3.8rem", fontWeight: 300, lineHeight: 1, color: "#f0ebe3" }}>
+            {results.overall}
+            <span style={{ fontSize: "1.3rem", color: "#5e5248" }}>/10</span>
+          </div>
+          <div style={{ fontFamily: "Playfair Display, serif", fontStyle: "italic", fontSize: "0.95rem", color: "#c9a96e", marginTop: 4 }}>
+            {results.vibe}
+          </div>
+        </div>
+        <div style={{ position: "absolute", top: 14, right: 16, fontFamily: "Playfair Display, serif", fontSize: "1rem", color: "#c9a96e", letterSpacing: "0.05em" }}>
+          Liv ✦
+        </div>
+      </div>
+
+      <div style={{ padding: "18px 22px 22px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 22px" }}>
+          {results.categories.map((c) => (
+            <div key={c.name}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 3 }}>
+                <span style={{ fontSize: "0.58rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "#9e8e7e" }}>{c.name}</span>
+                <span style={{ fontFamily: "Playfair Display, serif", fontSize: "0.9rem", fontWeight: 300, color: "#f0ebe3" }}>{c.score}</span>
+              </div>
+              <div style={{ height: 1.5, background: "#2a2520", borderRadius: 1, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${(c.score / 10) * 100}%`, background: "linear-gradient(90deg, #c9a96e, #e0c090)", borderRadius: 1 }} />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #2a2520", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: "0.58rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "#5e5248" }}>livwebstyles.vercel.app</span>
+          <span style={{ fontFamily: "Playfair Display, serif", fontStyle: "italic", fontSize: "0.68rem", color: "#5e5248" }}>rate your look ✦</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShareModal({ photo, results, onClose }) {
+  const cardRef = useRef(null);
+  const [cardImg, setCardImg] = useState(null);
+  const [generating, setGenerating] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(async () => {
+      if (!cardRef.current) return;
+      try {
+        const html2canvas = (await import("html2canvas")).default;
+        const canvas = await html2canvas(cardRef.current, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#0e0d0b",
+          logging: false,
+        });
+        setCardImg(canvas.toDataURL("image/png"));
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setGenerating(false);
+      }
+    }, 150);
+    return () => clearTimeout(t);
+  }, []);
+
+  const download = () => {
+    if (!cardImg) return;
+    const a = document.createElement("a");
+    a.href = cardImg;
+    a.download = "liv-style-rating.png";
+    a.click();
+  };
+
+  const shareToX = () => {
+    const text = `I got ${results.overall}/10 on Liv ✦ Style Analysis — "${results.vibe}" ✦\nRate your look 👉 livwebstyles.vercel.app`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
+  return (
+    <>
+      <div className="share-card-wrap" ref={cardRef}>
+        <ShareCard photo={photo} results={results} />
+      </div>
+      <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+        <div className="modal">
+          {generating ? (
+            <div style={{ padding: "48px", textAlign: "center", color: "var(--text3)", fontSize: "0.72rem", letterSpacing: "0.15em", textTransform: "uppercase" }}>
+              generating card...
+            </div>
+          ) : cardImg ? (
+            <img src={cardImg} alt="Share card preview" className="modal-preview" />
+          ) : (
+            <div style={{ padding: "32px", textAlign: "center", color: "var(--text3)", fontSize: "0.75rem" }}>
+              Could not generate preview
+            </div>
+          )}
+          <div className="modal-actions">
+            <button className="modal-btn modal-btn-primary" onClick={download} disabled={!cardImg}>
+              ↓ Save Image
+            </button>
+            <button className="modal-btn modal-btn-x" onClick={shareToX}>
+              Post to X
+            </button>
+            <button className="modal-close" onClick={onClose}>✕</button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function PhotoCard({ photo, onRemove, onAnalyse }) {
+  const [showShare, setShowShare] = useState(false);
+
   return (
     <div className="card">
       <div className="img-wrap">
@@ -492,17 +740,13 @@ function PhotoCard({ photo, onRemove, onAnalyse }) {
 
       {photo.status === "idle" && (
         <div className="card-foot">
-          <button className="analyse-btn" onClick={() => onAnalyse(photo.id)}>
-            Analyse Look
-          </button>
+          <button className="analyse-btn" onClick={() => onAnalyse(photo.id)}>Analyse Look</button>
         </div>
       )}
 
       {photo.status === "loading" && (
         <div className="loading-wrap">
-          <div className="dot" />
-          <div className="dot dot2" />
-          <div className="dot dot3" />
+          <div className="dot" /><div className="dot dot2" /><div className="dot dot3" />
         </div>
       )}
 
@@ -515,28 +759,37 @@ function PhotoCard({ photo, onRemove, onAnalyse }) {
       )}
 
       {photo.status === "done" && photo.results && (
-        <div className="results">
-          <div className="overall">
-            <div className="overall-num">
-              {photo.results.overall}
-              <span className="overall-denom">/10</span>
-            </div>
-            <div className="overall-label">Overall Score</div>
-            <div className="overall-vibe">{photo.results.vibe}</div>
-          </div>
-          <div className="cats">
-            {photo.results.categories.map((c) => (
-              <div key={c.name}>
-                <div className="cat-head">
-                  <span className="cat-name">{c.name}</span>
-                  <span className="cat-score">{c.score}/10</span>
-                </div>
-                <ScoreBar score={c.score} />
-                <div className="cat-note">{c.note}</div>
+        <>
+          <div className="results">
+            <div className="overall">
+              <div className="overall-num">
+                {photo.results.overall}
+                <span className="overall-denom">/10</span>
               </div>
-            ))}
+              <div className="overall-label">Overall Score</div>
+              <div className="overall-vibe">{photo.results.vibe}</div>
+            </div>
+            <div className="cats">
+              {photo.results.categories.map((c) => (
+                <div key={c.name}>
+                  <div className="cat-head">
+                    <span className="cat-name">{c.name}</span>
+                    <span className="cat-score">{c.score}/10</span>
+                  </div>
+                  <ScoreBar score={c.score} />
+                  <div className="cat-note">{c.note}</div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+          <div className="share-row">
+            <button className="share-btn" onClick={() => setShowShare(true)}>✦ Share My Rating</button>
+          </div>
+        </>
+      )}
+
+      {showShare && photo.results && (
+        <ShareModal photo={photo} results={photo.results} onClose={() => setShowShare(false)} />
       )}
     </div>
   );
@@ -554,9 +807,7 @@ export default function StyleApp() {
         const MAX_BYTES = 4.5 * 1024 * 1024;
         const maxDim = 2048;
         let scale = 1;
-        if (img.width > maxDim || img.height > maxDim) {
-          scale = maxDim / Math.max(img.width, img.height);
-        }
+        if (img.width > maxDim || img.height > maxDim) scale = maxDim / Math.max(img.width, img.height);
         const canvas = document.createElement("canvas");
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
@@ -577,32 +828,12 @@ export default function StyleApp() {
     Array.from(files).forEach((file) => {
       if (!file.type.startsWith("image/")) return;
       if (file.size > 30 * 1024 * 1024) {
-        setPhotos((prev) => [
-          ...prev,
-          {
-            id: Date.now() + Math.random(),
-            src: null,
-            mediaType: file.type,
-            status: "error",
-            results: null,
-            errorMsg: `"${file.name}" is ${(file.size / (1024 * 1024)).toFixed(1)}MB — max is 30MB`,
-          },
-        ]);
+        setPhotos((prev) => [...prev, { id: Date.now() + Math.random(), src: null, mediaType: file.type, status: "error", results: null, errorMsg: `"${file.name}" is ${(file.size / (1024 * 1024)).toFixed(1)}MB — max is 30MB` }]);
         return;
       }
       const reader = new FileReader();
       reader.onload = (e) => {
-        setPhotos((prev) => [
-          ...prev,
-          {
-            id: Date.now() + Math.random(),
-            src: e.target.result,
-            mediaType: file.type,
-            status: "idle",
-            results: null,
-            errorMsg: null,
-          },
-        ]);
+        setPhotos((prev) => [...prev, { id: Date.now() + Math.random(), src: e.target.result, mediaType: file.type, status: "idle", results: null, errorMsg: null }]);
       };
       reader.readAsDataURL(file);
     });
@@ -613,31 +844,20 @@ export default function StyleApp() {
   const analysePhoto = async (id) => {
     const photo = photos.find((p) => p.id === id);
     if (!photo) return;
-
-    setPhotos((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status: "loading", errorMsg: null } : p))
-    );
-
+    setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, status: "loading", errorMsg: null } : p)));
     try {
       const compressed = await compressImage(photo.src);
       const base64 = compressed.split(",")[1];
-
       const response = await fetch("/api/analyse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageData: base64, mediaType: "image/jpeg" }),
       });
-
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Analysis failed");
-
-      setPhotos((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, status: "done", results: data } : p))
-      );
+      setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, status: "done", results: data } : p)));
     } catch (err) {
-      setPhotos((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, status: "error", errorMsg: err.message } : p))
-      );
+      setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, status: "error", errorMsg: err.message } : p)));
     }
   };
 
@@ -647,9 +867,7 @@ export default function StyleApp() {
       <div className="app">
         <header className="header">
           <div className="header-left">
-            <h1 className="header-title">
-              Liv <span className="header-star">✦</span>
-            </h1>
+            <h1 className="header-title">Liv <span className="header-star">✦</span></h1>
             <span className="header-sub">Style Analysis</span>
           </div>
           <button className="toggle" onClick={() => setDark((d) => !d)}>
@@ -660,9 +878,7 @@ export default function StyleApp() {
 
         <main className="main">
           <div className="tagline">
-            <div className="tagline-main">
-              Outfit ratings for elegance &amp; true baddies
-            </div>
+            <div className="tagline-main">Outfit ratings for elegance &amp; true baddies</div>
             <div className="tagline-sub">Upload a photo. Get your verdict. ✦</div>
           </div>
 
@@ -672,12 +888,7 @@ export default function StyleApp() {
             onDragLeave={() => setOver(false)}
             onDrop={(e) => { e.preventDefault(); setOver(false); handleFiles(e.dataTransfer.files); }}
           >
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => handleFiles(e.target.files)}
-            />
+            <input type="file" accept="image/*" multiple onChange={(e) => handleFiles(e.target.files)} />
             <span className="drop-ornament">✦ ✦ ✦</span>
             <div className="drop-title">Drop your photos here</div>
             <div className="drop-sub">or click to browse · png · jpg · webp · up to 30mb</div>
@@ -686,12 +897,7 @@ export default function StyleApp() {
           {photos.length > 0 && (
             <div className="grid">
               {photos.map((photo) => (
-                <PhotoCard
-                  key={photo.id}
-                  photo={photo}
-                  onRemove={removePhoto}
-                  onAnalyse={analysePhoto}
-                />
+                <PhotoCard key={photo.id} photo={photo} onRemove={removePhoto} onAnalyse={analysePhoto} />
               ))}
             </div>
           )}
@@ -700,14 +906,7 @@ export default function StyleApp() {
         <footer className="footer">
           <div className="footer-text">
             made by{" "}
-            <a
-              href="https://x.com/LivWeb4"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="footer-link"
-            >
-              @LivWeb4
-            </a>
+            <a href="https://x.com/LivWeb4" target="_blank" rel="noopener noreferrer" className="footer-link">@LivWeb4</a>
             {" · "}
             <TipButton />
           </div>
