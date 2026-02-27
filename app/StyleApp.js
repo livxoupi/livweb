@@ -45,7 +45,7 @@ const getStyles = (dark) => `
 
   .header-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.7rem;
+    font-size: 2rem;
     font-weight: 400;
     letter-spacing: 0.04em;
     color: var(--text);
@@ -55,7 +55,7 @@ const getStyles = (dark) => `
   .header-star { color: var(--gold); }
 
   .header-sub {
-    font-size: 0.58rem;
+    font-size: 0.72rem;
     font-weight: 300;
     letter-spacing: 0.25em;
     text-transform: uppercase;
@@ -78,7 +78,7 @@ const getStyles = (dark) => `
   .toggle:hover { border-color: var(--gold); }
 
   .toggle-label {
-    font-size: 0.58rem;
+    font-size: 0.72rem;
     font-weight: 400;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -96,7 +96,7 @@ const getStyles = (dark) => `
     font-family: 'Playfair Display', serif;
     font-style: italic;
     font-weight: 300;
-    font-size: 1.55rem;
+    font-size: 1.8rem;
     color: var(--text);
     letter-spacing: 0.02em;
     margin-bottom: 8px;
@@ -104,7 +104,7 @@ const getStyles = (dark) => `
   }
 
   .tagline-sub {
-    font-size: 0.58rem;
+    font-size: 0.74rem;
     font-weight: 300;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -157,7 +157,7 @@ const getStyles = (dark) => `
 
   .drop-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.15rem;
+    font-size: 1.45rem;
     font-weight: 300;
     font-style: italic;
     color: var(--text2);
@@ -165,7 +165,7 @@ const getStyles = (dark) => `
   }
 
   .drop-sub {
-    font-size: 0.6rem;
+    font-size: 0.74rem;
     font-weight: 300;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -266,7 +266,7 @@ const getStyles = (dark) => `
     border: none;
     border-radius: 3px;
     font-family: 'Jost', sans-serif;
-    font-size: 0.6rem;
+    font-size: 0.74rem;
     font-weight: 400;
     letter-spacing: 0.22em;
     text-transform: uppercase;
@@ -327,7 +327,7 @@ const getStyles = (dark) => `
 
   .overall-num {
     font-family: 'Playfair Display', serif;
-    font-size: 3.2rem;
+    font-size: 3.6rem;
     font-weight: 300;
     line-height: 1;
     color: var(--text);
@@ -335,12 +335,12 @@ const getStyles = (dark) => `
 
   .overall-denom {
     font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     color: var(--text3);
   }
 
   .overall-label {
-    font-size: 0.56rem;
+    font-size: 0.7rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
     color: var(--text3);
@@ -350,7 +350,7 @@ const getStyles = (dark) => `
   .overall-vibe {
     font-family: 'Playfair Display', serif;
     font-style: italic;
-    font-size: 0.9rem;
+    font-size: 1.05rem;
     color: var(--gold);
     margin-top: 8px;
   }
@@ -365,7 +365,7 @@ const getStyles = (dark) => `
   }
 
   .cat-name {
-    font-size: 0.58rem;
+    font-size: 0.74rem;
     font-weight: 400;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -374,7 +374,7 @@ const getStyles = (dark) => `
 
   .cat-score {
     font-family: 'Playfair Display', serif;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     font-weight: 300;
     color: var(--text);
   }
@@ -395,16 +395,16 @@ const getStyles = (dark) => `
   }
 
   .cat-note {
-    font-size: 0.66rem;
+    font-size: 0.82rem;
     color: var(--text3);
     line-height: 1.6;
     font-weight: 300;
   }
 
   .err-wrap { padding: 16px 18px; text-align: center; }
-  .err-text { font-size: 0.68rem; color: #c0614a; margin-bottom: 4px; }
+  .err-text { font-size: 0.82rem; color: #c0614a; margin-bottom: 4px; }
   .err-detail {
-    font-size: 0.58rem;
+    font-size: 0.72rem;
     color: var(--text3);
     margin-bottom: 12px;
     word-break: break-all;
@@ -434,12 +434,43 @@ const getStyles = (dark) => `
   }
 
   .footer-link:hover { opacity: 0.7; }
+
+  .tip-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--gold);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    opacity: 0.85;
+    padding: 0;
+    transition: opacity 0.2s;
+  }
+  .tip-btn:hover { opacity: 1; }
 `;
+
+const SOL_ADDRESS = "ACuMAe2S6B8kfCM4o7R1nJWyMcPXYLEdqC4xYaC7tk1S";
+
+function TipButton() {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(SOL_ADDRESS);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button className="tip-btn" onClick={copy} title={SOL_ADDRESS}>
+      {copied ? "◎ copied!" : "◎ tip sol"}
+    </button>
+  );
+}
 
 function ScoreBar({ score }) {
   return (
     <div className="bar-bg">
-      <div className="bar-fill" style={{ width: `${score * 10}%` }} />
+      <div className="bar-fill" style={{ width: `${(score / 10) * 100}%` }} />
     </div>
   );
 }
@@ -677,6 +708,8 @@ export default function StyleApp() {
             >
               @LivWeb4
             </a>
+            {" · "}
+            <TipButton />
           </div>
         </footer>
       </div>
