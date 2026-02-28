@@ -21,27 +21,16 @@ async function redis(command) {
   return data.result;
 }
 
-// Compress image to tiny thumbnail for leaderboard storage
-async function compressToThumbnail(base64src) {
-  // We're server-side, so just truncate — client will handle display
-  // Strip the data URL prefix and return a flag instead
-  return base64src ? "1" : "0";
-}
-
-// GET — fetch top 3 for current week
 export async function GET() {
   try {
     const weekKey = getWeekKey();
     const ids = await redis(["ZRANGE", weekKey, "+inf", "-inf", "BYSCORE", "REV", "LIMIT", "0", "3"]);
 
-    if (!ids || ids.length === 0) {
-      return Response.json({ entries: [] });
-    }
+    if (!ids || ids.length === 0) return Response.json({ entries: [] });
 
     const entries = await Promise.all(
       ids.map(async (id) => {
-        // Only fetch the fields we need — NOT src (too large)
-        const fields = ["id", "name", "score", "vibe", "occasion", "showPhoto", "ts", "thumb"];
+        const fields = ["id", "name", "score", "vibe", "occasion", "showPhoto", "src", "ts"];
         const data = await redis(["HMGET", id, ...fields]);
         if (!data) return null;
         const obj = {};
@@ -57,22 +46,16 @@ export async function GET() {
   }
 }
 
-// POST — submit a new entry
 export async function POST(request) {
   try {
     const body = await request.json();
     const { name, score, vibe, occasion, showPhoto, src } = body;
 
-    if (!score || !vibe) {
-      return Response.json({ error: "Missing required fields" }, { status: 400 });
-    }
+    if (!score || !vibe) return Response.json({ error: "Missing required fields" }, { status: 400 });
 
     const weekKey = getWeekKey();
     const entryId = `entry:${weekKey}:${Date.now()}`;
     const ttl = 60 * 60 * 24 * 8;
-
-    // Store a tiny thumbnail (first 500 chars of base64 = ~375 bytes, enough for a blur placeholder)
-    const thumb = showPhoto && src ? src.substring(0, 2000) : "";
 
     await redis([
       "HSET", entryId,
@@ -82,7 +65,7 @@ export async function POST(request) {
       "vibe", vibe,
       "occasion", occasion || "Any",
       "showPhoto", showPhoto ? "1" : "0",
-      "thumb", thumb,
+      "src", src || "",
       "ts", Date.now().toString(),
     ]);
 
