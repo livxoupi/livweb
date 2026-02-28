@@ -737,24 +737,25 @@ function SubmitModal({ photo, results, onClose, onSubmitted }) {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const weekKey = getWeekKey();
-      const entryId = `${LB_KEY}:${weekKey}:${Date.now()}`;
-      const entry = {
-        id: entryId,
-        name: name.trim() || "Anonymous",
-        score: results.overall,
-        vibe: results.vibe,
-        occasion: results.occasion || "Any",
-        showPhoto,
-        src: showPhoto ? photo.src : null,
-        week: weekKey,
-        ts: Date.now(),
-      };
-      await window.storage.set(entryId, JSON.stringify(entry), true);
+      const res = await fetch("/api/leaderboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim() || "Anonymous",
+          score: results.overall,
+          vibe: results.vibe,
+          occasion: results.occasion || "Any",
+          showPhoto,
+          src: showPhoto ? photo.src : null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Submit failed");
       onSubmitted();
       onClose();
     } catch (e) {
       console.error(e);
+      alert("Couldn't submit — try again!");
     }
     setSubmitting(false);
   };
@@ -802,23 +803,9 @@ function LeaderboardPanel() {
   const load = async () => {
     setLoading(true);
     try {
-      const weekKey = getWeekKey();
-      const prefix = `${LB_KEY}:${weekKey}:`;
-      const result = await window.storage.list(prefix, true);
-      const keys = result?.keys || [];
-      const items = await Promise.all(
-        keys.map(async (k) => {
-          try {
-            const r = await window.storage.get(k, true);
-            return r ? JSON.parse(r.value) : null;
-          } catch { return null; }
-        })
-      );
-      const valid = items
-        .filter(Boolean)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 3);
-      setEntries(valid);
+      const res = await fetch("/api/leaderboard");
+      const data = await res.json();
+      setEntries(data.entries || []);
     } catch (e) {
       console.error(e);
     }
