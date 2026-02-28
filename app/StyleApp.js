@@ -737,6 +737,23 @@ function SubmitModal({ photo, results, onClose, onSubmitted }) {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
+      // Compress photo to small thumbnail before sending
+      let thumbSrc = null;
+      if (showPhoto && photo.src) {
+        thumbSrc = await new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = 120;
+            canvas.height = 160;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, 120, 160);
+            resolve(canvas.toDataURL("image/jpeg", 0.5));
+          };
+          img.src = photo.src;
+        });
+      }
+
       const res = await fetch("/api/leaderboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -746,7 +763,7 @@ function SubmitModal({ photo, results, onClose, onSubmitted }) {
           vibe: results.vibe,
           occasion: results.occasion || "Any",
           showPhoto,
-          src: showPhoto ? photo.src : null,
+          src: thumbSrc,
         }),
       });
       const data = await res.json();
@@ -850,8 +867,8 @@ function LeaderboardPanel() {
                 <div key={rank} className={`podium-slot ${cls}`}>
                   <div className="podium-photo">
                     <div className="podium-rank">{rank}</div>
-                    {entry?.showPhoto === "1" && entry?.thumb ? (
-                      <img src={entry.thumb} alt="" style={{ filter: "blur(2px)", transform: "scale(1.1)" }} />
+                    {entry?.showPhoto === "1" && entry?.src ? (
+                      <img src={entry.src} alt="" />
                     ) : (
                       <div className="podium-photo-placeholder">✦</div>
                     )}
