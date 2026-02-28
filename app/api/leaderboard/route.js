@@ -21,12 +21,17 @@ async function redis(command) {
   return data.result;
 }
 
+// Compress image to tiny thumbnail for leaderboard storage
+async function compressToThumbnail(base64src) {
+  // We're server-side, so just truncate — client will handle display
+  // Strip the data URL prefix and return a flag instead
+  return base64src ? "1" : "0";
+}
+
 // GET — fetch top 3 for current week
 export async function GET() {
   try {
     const weekKey = getWeekKey();
-
-    // Get top 3 entry IDs by score descending
     const ids = await redis(["ZRANGE", weekKey, "+inf", "-inf", "BYSCORE", "REV", "LIMIT", "0", "3"]);
 
     if (!ids || ids.length === 0) {
@@ -35,12 +40,12 @@ export async function GET() {
 
     const entries = await Promise.all(
       ids.map(async (id) => {
-        const data = await redis(["HGETALL", id]);
-        if (!data || data.length === 0) return null;
+        // Only fetch the fields we need — NOT src (too large)
+        const fields = ["id", "name", "score", "vibe", "occasion", "showPhoto", "ts", "thumb"];
+        const data = await redis(["HMGET", id, ...fields]);
+        if (!data) return null;
         const obj = {};
-        for (let i = 0; i < data.length; i += 2) {
-          obj[data[i]] = data[i + 1];
-        }
+        fields.forEach((f, i) => { obj[f] = data[i]; });
         return obj;
       })
     );
@@ -66,6 +71,9 @@ export async function POST(request) {
     const entryId = `entry:${weekKey}:${Date.now()}`;
     const ttl = 60 * 60 * 24 * 8;
 
+    // Store a tiny thumbnail (first 500 chars of base64 = ~375 bytes, enough for a blur placeholder)
+    const thumb = showPhoto && src ? src.substring(0, 2000) : "";
+
     await redis([
       "HSET", entryId,
       "id", entryId,
@@ -74,7 +82,7 @@ export async function POST(request) {
       "vibe", vibe,
       "occasion", occasion || "Any",
       "showPhoto", showPhoto ? "1" : "0",
-      "src", showPhoto && src ? src : "",
+      "thumb", thumb,
       "ts", Date.now().toString(),
     ]);
 
