@@ -509,52 +509,84 @@ function ShareModal({ photo, results, onClose }) {
   const [generating, setGenerating] = useState(true);
 
   useEffect(() => {
+    // Wait for fonts + layout to settle before capturing
     const t = setTimeout(async () => {
       if (!cardRef.current) return;
       try {
         const html2canvas = (await import("html2canvas")).default;
-        const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#08070a", logging: false });
+        const canvas = await html2canvas(cardRef.current, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#08070a",
+          logging: false,
+          windowWidth: 480,
+          windowHeight: cardRef.current.scrollHeight,
+        });
         setCardImg(canvas.toDataURL("image/png"));
       } catch (e) { console.error(e); }
       finally { setGenerating(false); }
-    }, 150);
+    }, 600);
     return () => clearTimeout(t);
   }, []);
 
   const download = () => {
     if (!cardImg) return;
     const a = document.createElement("a");
-    a.href = cardImg; a.download = "liv-style-rating.png"; a.click();
+    a.href = cardImg;
+    a.download = "liv-style-rating.png";
+    a.click();
+  };
+
+  const shareToX = () => {
+    const text = `I got ${results.overall}/10 on Liv ✦ Style Analysis — "${results.vibe}" ✦\nRate your look 👉 livwebstyles.vercel.app`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   const shareImage = async () => {
     if (!cardImg) return;
-    const text = `I got ${results.overall}/10 on Liv ✦ Style Analysis — "${results.vibe}" ✦\nRate your look 👉 livwebstyles.vercel.app`;
-    const res = await fetch(cardImg);
-    const blob = await res.blob();
-    const file = new File([blob], "liv-style-rating.png", { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], text }); return; } catch (e) { if (e.name === "AbortError") return; }
+    // Try native share (mobile)
+    try {
+      const res = await fetch(cardImg);
+      const blob = await res.blob();
+      const file = new File([blob], "liv-style-rating.png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file] });
+        return;
+      }
+    } catch (e) {
+      if (e.name === "AbortError") return;
     }
+    // Fallback: download then open X
     download();
-    setTimeout(() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank"), 600);
+    setTimeout(shareToX, 800);
   };
 
   return (
     <>
-      <div className="share-card-wrap" ref={cardRef}><ShareCard photo={photo} results={results} /></div>
+      {/* Hidden render target — fixed size, no reflow */}
+      <div style={{ position: "fixed", left: "-9999px", top: 0, width: "480px", pointerEvents: "none", zIndex: -1 }}>
+        <div ref={cardRef}>
+          <ShareCard photo={photo} results={results} />
+        </div>
+      </div>
+
       <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
         <div className="modal">
           {generating ? (
-            <div style={{ padding: "48px", textAlign: "center", color: "var(--text3)", fontSize: "0.72rem", letterSpacing: "0.15em", textTransform: "uppercase" }}>generating card...</div>
+            <div style={{ padding: "48px", textAlign: "center", color: "var(--text3)", fontSize: "0.72rem", letterSpacing: "0.15em", textTransform: "uppercase" }}>
+              <div className="dots" style={{ justifyContent: "center", marginBottom: 12 }}><div className="dot" /><div className="dot dot2" /><div className="dot dot3" /></div>
+              generating card...
+            </div>
           ) : cardImg ? (
             <img src={cardImg} alt="Share card" className="modal-preview" />
           ) : (
             <div style={{ padding: "32px", textAlign: "center", color: "var(--text3)", fontSize: "0.75rem" }}>Could not generate preview</div>
           )}
           <div className="modal-actions">
-            <button className="modal-btn modal-btn-primary" onClick={shareImage} disabled={!cardImg}>✦ Share My Rating</button>
-            <button className="modal-btn modal-btn-x" onClick={download} disabled={!cardImg}>↓ Save Image</button>
+            <button className="modal-btn modal-btn-primary" onClick={shareImage} disabled={!cardImg}>✦ Share</button>
+            <button className="modal-btn modal-btn-x" onClick={shareToX}>𝕏 Post</button>
+            <button className="modal-btn modal-btn-x" onClick={download} disabled={!cardImg}>↓ Save</button>
             <button className="modal-close" onClick={onClose}>✕</button>
           </div>
         </div>
