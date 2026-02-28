@@ -850,8 +850,8 @@ function LeaderboardPanel() {
                 <div key={rank} className={`podium-slot ${cls}`}>
                   <div className="podium-photo">
                     <div className="podium-rank">{rank}</div>
-                    {entry?.src ? (
-                      <img src={entry.src} alt="" />
+                    {entry?.showPhoto === "1" && entry?.thumb ? (
+                      <img src={entry.thumb} alt="" style={{ filter: "blur(2px)", transform: "scale(1.1)" }} />
                     ) : (
                       <div className="podium-photo-placeholder">✦</div>
                     )}
