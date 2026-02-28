@@ -1197,6 +1197,8 @@ export default function StyleApp() {
           <div className="footer-text">
             made by{" "}
             <a href="https://x.com/LivWeb4" target="_blank" rel="noopener noreferrer" className="footer-link">@LivWeb4</a>
+            {" · "}
+            <a href="https://au.pinterest.com/livxoupi/" target="_blank" rel="noopener noreferrer" className="footer-link">Pinterest</a>
             {" · "}<TipButton />
           </div>
         </footer>
