@@ -395,6 +395,76 @@ const getStyles = (dark) => `
   .tip-btn { background: none; border: none; cursor: pointer; color: var(--gold); font-family: 'Jost', sans-serif; font-size: 0.72rem; font-weight: 300; letter-spacing: 0.08em; opacity: 0.85; padding: 0; transition: opacity 0.2s; }
   .tip-btn:hover { opacity: 1; }
 
+  /* LEADERBOARD */
+  .leaderboard-panel {
+    border-bottom: 1px solid var(--border);
+    background: ${dark ? "rgba(16,14,20,0.97)" : "rgba(245,242,238,0.97)"};
+    backdrop-filter: blur(16px);
+    animation: slideDown 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .leaderboard-inner { max-width: 1000px; margin: 0 auto; padding: 28px 24px 32px; }
+  .leaderboard-header { text-align: center; margin-bottom: 28px; }
+  .leaderboard-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 300; font-style: italic; color: var(--text); margin-bottom: 4px; }
+  .leaderboard-sub { font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--text3); }
+  .leaderboard-week { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--pink); margin-top: 6px; ${dark ? "text-shadow: 0 0 10px rgba(255,61,154,0.4);" : ""} }
+
+  .podium { display: flex; align-items: flex-end; justify-content: center; gap: 16px; }
+  .podium-slot { display: flex; flex-direction: column; align-items: center; flex: 1; max-width: 220px; }
+  .podium-slot.first { order: 2; }
+  .podium-slot.second { order: 1; }
+  .podium-slot.third { order: 3; }
+
+  .podium-photo { width: 100%; aspect-ratio: 3/4; border-radius: 6px; overflow: hidden; border: 2px solid var(--border2); position: relative; background: var(--surface2); }
+  .podium-slot.first .podium-photo { border-color: var(--gold); ${dark ? "box-shadow: 0 0 24px rgba(201,169,110,0.25);" : ""} }
+  .podium-slot.second .podium-photo { border-color: rgba(192,192,192,0.4); }
+  .podium-slot.third .podium-photo { border-color: rgba(205,127,50,0.4); }
+  .podium-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .podium-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text3); font-size: 2.5rem; opacity: 0.2; }
+
+  .podium-rank { position: absolute; top: 8px; left: 8px; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 0.85rem; font-weight: 400; backdrop-filter: blur(8px); }
+  .podium-slot.first .podium-rank { background: rgba(201,169,110,0.95); color: #08070a; }
+  .podium-slot.second .podium-rank { background: rgba(192,192,192,0.85); color: #08070a; }
+  .podium-slot.third .podium-rank { background: rgba(205,127,50,0.85); color: #08070a; }
+
+  .podium-score-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px 8px 8px; background: linear-gradient(to top, rgba(0,0,0,0.85), transparent); text-align: center; }
+  .podium-score-num { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 300; color: #fff; line-height: 1; }
+  .podium-score-denom { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
+
+  .podium-info { text-align: center; margin-top: 10px; width: 100%; }
+  .podium-vibe { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.8rem; color: var(--pink); margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+  .podium-name { font-size: 0.65rem; letter-spacing: 0.1em; color: var(--text2); margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .podium-occasion { font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); }
+
+  .podium-base { width: 100%; border-radius: 4px 4px 0 0; margin-top: 10px; display: flex; align-items: center; justify-content: center; }
+  .podium-slot.first .podium-base { height: 48px; background: ${dark ? "rgba(201,169,110,0.1)" : "rgba(201,169,110,0.08)"}; border: 1px solid rgba(201,169,110,0.2); border-bottom: none; }
+  .podium-slot.second .podium-base { height: 32px; background: ${dark ? "rgba(192,192,192,0.05)" : "rgba(192,192,192,0.07)"}; border: 1px solid rgba(192,192,192,0.12); border-bottom: none; }
+  .podium-slot.third .podium-base { height: 20px; background: ${dark ? "rgba(205,127,50,0.05)" : "rgba(205,127,50,0.07)"}; border: 1px solid rgba(205,127,50,0.12); border-bottom: none; }
+
+  .leaderboard-empty { text-align: center; padding: 48px 20px; }
+  .leaderboard-empty-icon { font-size: 2.5rem; margin-bottom: 14px; opacity: 0.35; }
+  .leaderboard-empty-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; color: var(--text3); margin-bottom: 6px; }
+  .leaderboard-empty-sub { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text3); opacity: 0.55; }
+
+  .submit-lb-btn { width: 100%; padding: 10px; margin-top: 8px; background: transparent; color: var(--purple); border: 1px solid var(--purple); border-radius: 4px; font-family: 'Jost', sans-serif; font-size: 0.7rem; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .submit-lb-btn:hover { background: var(--purple); color: #fff; ${dark ? "box-shadow: 0 0 20px rgba(155,77,202,0.3);" : ""} }
+  .submit-lb-btn.submitted { border-color: var(--gold); color: var(--gold); opacity: 0.7; cursor: default; pointer-events: none; }
+
+  .submit-modal-body { padding: 24px 22px 20px; }
+  .submit-modal-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 300; color: var(--text); margin-bottom: 6px; }
+  .submit-modal-sub { font-size: 0.72rem; color: var(--text3); line-height: 1.6; margin-bottom: 20px; }
+  .submit-field { margin-bottom: 16px; }
+  .submit-label { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; display: block; }
+  .submit-input { width: 100%; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 4px; font-family: 'Jost', sans-serif; font-size: 0.84rem; color: var(--text); outline: none; transition: border-color 0.2s; }
+  .submit-input:focus { border-color: var(--purple); }
+  .submit-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 20px; gap: 16px; }
+  .submit-toggle-info { flex: 1; }
+  .submit-toggle-label { font-size: 0.78rem; color: var(--text2); }
+  .submit-toggle-hint { font-size: 0.64rem; color: var(--text3); margin-top: 3px; }
+  .toggle-switch { width: 42px; height: 24px; border-radius: 100px; border: 1px solid var(--border2); background: var(--surface2); cursor: pointer; position: relative; transition: all 0.2s; flex-shrink: 0; }
+  .toggle-switch.on { background: var(--purple); border-color: var(--purple); }
+  .toggle-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+  .toggle-switch.on::after { transform: translateX(18px); }
+
   @media (max-width: 600px) {
     .header { padding: 14px 16px; }
     .header-title { font-size: 1.5rem; }
@@ -414,6 +484,14 @@ const SOL_ADDRESS = "ACuMAe2S6B8kfCM4o7R1nJWyMcPXYLEdqC4xYaC7tk1S";
 const GOLD_COLORS = ["#c9a96e", "#e0c090", "#d4b892", "#f0ebe3", "#c4a882", "#9b4dca", "#e060a0", "#ffffff"];
 const HISTORY_KEY = "liv_style_history";
 const MAX_HISTORY = 20;
+const LB_KEY = "leaderboard";
+
+function getWeekKey() {
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const week = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+  return `week_${now.getFullYear()}_${week}`;
+}
 
 function TipButton() {
   const [copied, setCopied] = useState(false);
@@ -650,9 +728,175 @@ function HistoryPanel({ history, onSelect, onClear }) {
   );
 }
 
+// ── Submit to Leaderboard Modal ──────────────────────────────────────────────
+function SubmitModal({ photo, results, onClose, onSubmitted }) {
+  const [name, setName] = useState("");
+  const [showPhoto, setShowPhoto] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    try {
+      const weekKey = getWeekKey();
+      const entryId = `${LB_KEY}:${weekKey}:${Date.now()}`;
+      const entry = {
+        id: entryId,
+        name: name.trim() || "Anonymous",
+        score: results.overall,
+        vibe: results.vibe,
+        occasion: results.occasion || "Any",
+        showPhoto,
+        src: showPhoto ? photo.src : null,
+        week: weekKey,
+        ts: Date.now(),
+      };
+      await window.storage.set(entryId, JSON.stringify(entry), true);
+      onSubmitted();
+      onClose();
+    } catch (e) {
+      console.error(e);
+    }
+    setSubmitting(false);
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="submit-modal-body">
+          <div className="submit-modal-title">Enter the Leaderboard ✦</div>
+          <div className="submit-modal-sub">Your look will compete for this week's top 3. Results are public.</div>
+          <div className="submit-field">
+            <label className="submit-label">Your name / handle</label>
+            <input
+              className="submit-input"
+              placeholder="e.g. @baddieoftheweek"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              maxLength={30}
+            />
+          </div>
+          <div className="submit-toggle-row">
+            <div className="submit-toggle-info">
+              <div className="submit-toggle-label">Show my photo publicly</div>
+              <div className="submit-toggle-hint">{showPhoto ? "Your photo will be visible on the leaderboard" : "Only your score & vibe will show"}</div>
+            </div>
+            <div className={`toggle-switch${showPhoto ? " on" : ""}`} onClick={() => setShowPhoto(p => !p)} />
+          </div>
+          <div className="modal-actions" style={{ padding: 0 }}>
+            <button className="modal-btn modal-btn-primary" onClick={handleSubmit} disabled={submitting}>
+              {submitting ? "Submitting..." : "✦ Submit My Look"}
+            </button>
+            <button className="modal-close" onClick={onClose}>✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Leaderboard Panel ────────────────────────────────────────────────────────
+function LeaderboardPanel() {
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const weekKey = getWeekKey();
+      const prefix = `${LB_KEY}:${weekKey}:`;
+      const result = await window.storage.list(prefix, true);
+      const keys = result?.keys || [];
+      const items = await Promise.all(
+        keys.map(async (k) => {
+          try {
+            const r = await window.storage.get(k, true);
+            return r ? JSON.parse(r.value) : null;
+          } catch { return null; }
+        })
+      );
+      const valid = items
+        .filter(Boolean)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3);
+      setEntries(valid);
+    } catch (e) {
+      console.error(e);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const now = new Date();
+  const weekLabel = `Week of ${now.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`;
+
+  const slots = [
+    { rank: 1, label: "1st", cls: "first" },
+    { rank: 2, label: "2nd", cls: "second" },
+    { rank: 3, label: "3rd", cls: "third" },
+  ];
+
+  return (
+    <div className="leaderboard-panel">
+      <div className="leaderboard-inner">
+        <div className="leaderboard-header">
+          <div className="leaderboard-title">Weekly Podium</div>
+          <div className="leaderboard-sub">Top rated looks of the week</div>
+          <div className="leaderboard-week">✦ {weekLabel}</div>
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "32px" }}>
+            <div className="dots" style={{ justifyContent: "center" }}><div className="dot" /><div className="dot dot2" /><div className="dot dot3" /></div>
+          </div>
+        ) : entries.length === 0 ? (
+          <div className="leaderboard-empty">
+            <div className="leaderboard-empty-icon">✦</div>
+            <div className="leaderboard-empty-text">No looks submitted yet</div>
+            <div className="leaderboard-empty-sub">Be the first to claim the top spot</div>
+          </div>
+        ) : (
+          <div className="podium">
+            {slots.map(({ rank, cls }) => {
+              const entry = entries[rank - 1];
+              return (
+                <div key={rank} className={`podium-slot ${cls}`}>
+                  <div className="podium-photo">
+                    <div className="podium-rank">{rank}</div>
+                    {entry?.src ? (
+                      <img src={entry.src} alt="" />
+                    ) : (
+                      <div className="podium-photo-placeholder">✦</div>
+                    )}
+                    {entry && (
+                      <div className="podium-score-overlay">
+                        <div className="podium-score-num">{entry.score}<span className="podium-score-denom">/10</span></div>
+                      </div>
+                    )}
+                  </div>
+                  {entry && (
+                    <div className="podium-info">
+                      <div className="podium-vibe">{entry.vibe}</div>
+                      <div className="podium-name">{entry.name}</div>
+                      {entry.occasion && entry.occasion !== "Any" && <div className="podium-occasion">{entry.occasion}</div>}
+                    </div>
+                  )}
+                  <div className="podium-base" />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Photo Card ───────────────────────────────────────────────────────────────
 function PhotoCard({ photo, onRemove, onAnalyse, roastMode }) {
   const [showShare, setShowShare] = useState(false);
+  const [showSubmit, setShowSubmit] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const confettiShown = useRef(false);
 
@@ -726,9 +970,24 @@ function PhotoCard({ photo, onRemove, onAnalyse, roastMode }) {
                 </div>
               )}
             </div>
-            <div className="share-row">
+            <div className="share-row" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <button className="share-btn" onClick={() => setShowShare(true)}>✦ Share My Rating</button>
+              <button
+                className={`submit-lb-btn${submitted ? " submitted" : ""}`}
+                onClick={() => !submitted && setShowSubmit(true)}
+              >
+                {submitted ? "✦ On the leaderboard!" : "⬆ Submit to Weekly Leaderboard"}
+              </button>
             </div>
+
+        {showSubmit && photo.results && (
+          <SubmitModal
+            photo={photo}
+            results={photo.results}
+            onClose={() => setShowSubmit(false)}
+            onSubmitted={() => setSubmitted(true)}
+          />
+        )}
           </>
         )}
 
@@ -747,6 +1006,7 @@ export default function StyleApp() {
   const [occasion, setOccasion] = useState("Any");
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   // Load history on mount
   useEffect(() => {
@@ -861,8 +1121,15 @@ export default function StyleApp() {
               🔥
             </button>
             <button
+              className={`icon-btn${showLeaderboard ? " active-history" : ""}`}
+              onClick={() => { setShowLeaderboard(l => !l); setShowHistory(false); }}
+              title="Weekly Leaderboard"
+            >
+              🏆
+            </button>
+            <button
               className={`icon-btn${showHistory ? " active-history" : ""}`}
-              onClick={() => setShowHistory(h => !h)}
+              onClick={() => { setShowHistory(h => !h); setShowLeaderboard(false); }}
               title="History"
               style={{ position: "relative" }}
             >
@@ -882,6 +1149,8 @@ export default function StyleApp() {
             </button>
           </div>
         </header>
+
+        {showLeaderboard && <LeaderboardPanel />}
 
         {showHistory && (
           <HistoryPanel history={history} onSelect={handleSelectHistory} onClear={clearHistory} />
