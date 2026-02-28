@@ -1,5 +1,3 @@
-import { kv } from "@vercel/kv";
-
 function getWeekKey() {
   const now = new Date();
   const startOfYear = new Date(now.getFullYear(), 0, 1);
@@ -7,22 +5,47 @@ function getWeekKey() {
   return `leaderboard:week_${now.getFullYear()}_${week}`;
 }
 
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+async function redis(command) {
+  const res = await fetch(UPSTASH_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${UPSTASH_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(command),
+  });
+  const data = await res.json();
+  return data.result;
+}
+
 // GET — fetch top 3 for current week
 export async function GET() {
   try {
     const weekKey = getWeekKey();
-    // Get all entry IDs sorted by score (we store as a sorted set)
-    const entries = await kv.zrange(weekKey, 0, 2, { rev: true, withScores: true });
 
-    const results = [];
-    for (let i = 0; i < entries.length; i += 2) {
-      const id = entries[i];
-      const score = entries[i + 1];
-      const data = await kv.hgetall(id);
-      if (data) results.push({ ...data, score: parseFloat(score) });
+    // Get top 3 entry IDs by score descending
+    const ids = await redis(["ZRANGE", weekKey, "+inf", "-inf", "BYSCORE", "REV", "LIMIT", "0", "3"]);
+
+    if (!ids || ids.length === 0) {
+      return Response.json({ entries: [] });
     }
 
-    return Response.json({ entries: results });
+    const entries = await Promise.all(
+      ids.map(async (id) => {
+        const data = await redis(["HGETALL", id]);
+        if (!data || data.length === 0) return null;
+        const obj = {};
+        for (let i = 0; i < data.length; i += 2) {
+          obj[data[i]] = data[i + 1];
+        }
+        return obj;
+      })
+    );
+
+    return Response.json({ entries: entries.filter(Boolean) });
   } catch (err) {
     console.error(err);
     return Response.json({ error: err.message }, { status: 500 });
@@ -41,30 +64,26 @@ export async function POST(request) {
 
     const weekKey = getWeekKey();
     const entryId = `entry:${weekKey}:${Date.now()}`;
+    const ttl = 60 * 60 * 24 * 8;
 
-    // Store entry data as a hash
-    await kv.hset(entryId, {
-      id: entryId,
-      name: name || "Anonymous",
-      score: score.toString(),
-      vibe,
-      occasion: occasion || "Any",
-      showPhoto: showPhoto ? "1" : "0",
-      src: showPhoto && src ? src : "",
-      ts: Date.now().toString(),
-    });
+    await redis([
+      "HSET", entryId,
+      "id", entryId,
+      "name", name || "Anonymous",
+      "score", score.toString(),
+      "vibe", vibe,
+      "occasion", occasion || "Any",
+      "showPhoto", showPhoto ? "1" : "0",
+      "src", showPhoto && src ? src : "",
+      "ts", Date.now().toString(),
+    ]);
 
-    // Add to sorted set for this week (scored by rating)
-    await kv.zadd(weekKey, { score, member: entryId });
+    await redis(["EXPIRE", entryId, ttl]);
+    await redis(["ZADD", weekKey, score, entryId]);
+    await redis(["EXPIRE", weekKey, ttl]);
+    await redis(["ZREMRANGEBYRANK", weekKey, 0, -11]);
 
-    // Expire after 8 days so old weeks clean themselves up
-    await kv.expire(weekKey, 60 * 60 * 24 * 8);
-    await kv.expire(entryId, 60 * 60 * 24 * 8);
-
-    // Keep only top 10 in the sorted set
-    await kv.zremrangebyrank(weekKey, 0, -11);
-
-    return Response.json({ success: true, id: entryId });
+    return Response.json({ success: true });
   } catch (err) {
     console.error(err);
     return Response.json({ error: err.message }, { status: 500 });
