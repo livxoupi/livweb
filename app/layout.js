@@ -1,4 +1,6 @@
 import "./globals.css";
+import Script from "next/script";
+
 export const metadata = {
   title: "Liv ✦ — Style Analysis",
   description: "Outfit ratings for elegance & true baddies. Upload a photo, get your verdict.",
@@ -22,6 +24,7 @@ export const metadata = {
     images: ["https://livwebstyles.vercel.app/og-image.png"],
   },
 };
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -31,7 +34,22 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Script
+          data-name="BMC-Widget"
+          data-cfasync="false"
+          src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
+          data-id="LivXfun"
+          data-description="Support me on Buy me a coffee!"
+          data-message="Thank you for checking out my web page, lost some sleep so I need some coffee."
+          data-color="#BD5FFF"
+          data-position="Right"
+          data-x_margin="18"
+          data-y_margin="18"
+          strategy="lazyOnload"
+        />
+      </body>
     </html>
   );
 }
